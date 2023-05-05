@@ -1,70 +1,74 @@
 openapi: 3.0.1
 info:
   title: TODO Plugin
-  description: A plugin that allows the user to create and manage a TODO list using ChatGPT. If you do not know the user's username, ask them first before making queries to the plugin. Otherwise, use the username "global".
+  description: 
+    A plugin that helps you to play Go aka Baduk on a 9x9 board against the user. 
+    You can start a new game, ask for the best move, make a move, get the move sequence, 
+    get a position diagram, get the current score, or undo the last move. 
+    The plugin uses the KataGo engine to make the moves. 
   version: 'v1'
 servers:
   - url: http://localhost:5003
 paths:
-  /todos/{username}:
+  /katachat/start_game:
     get:
-      operationId: getTodos
-      summary: Get the list of todos
+      operationId: start_game
+      summary: Start a new game. Resets the game record and returns a game id.
       parameters:
-      - in: path
-        name: username
-        schema:
-            type: string
-        required: true
-        description: The name of the user.
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/getTodosResponse'
-    post:
-      operationId: addTodo
-      summary: Add a todo to the list
+                $ref: '#/components/schemas/start_game_resp'
+  /katachat/get_best_move/{game_id}:
+    get:
+      operationId: get_best_move
+      summary: Get the best next move in the current position for the game identified by game_id.
       parameters:
       - in: path
-        name: username
+        name: game_id
         schema:
             type: string
         required: true
-        description: The name of the user.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/addTodoRequest'
+        description: The id of the game to get the best move for.
       responses:
-        "200":
+        '200':
           description: OK
-    delete:
-      operationId: deleteTodo
-      summary: Delete a todo from the list
-      parameters:
-      - in: path
-        name: username
-        schema:
-            type: string
-        required: true
-        description: The name of the user.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/deleteTodoRequest'
-      responses:
-        "200":
-          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/get_best_move_resp'
+        '5XX':
+          description: Katachat error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/katachat_error'
 
 components:
   schemas:
+    start_game_resp:
+      type: object
+      properties:
+        game_id:
+          type: string
+          description: The unique game identifier.
+    get_best_move_resp:
+      type: object
+      properties:
+        best_move:
+          type: string
+          description: The best move in the current position.
+    katachat_error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Description of the error.
+
+
     getTodosResponse:
       type: object
       properties:
