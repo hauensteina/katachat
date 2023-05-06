@@ -3,7 +3,7 @@
   "name_for_human": "KataGo Go Playing Plugin",
   "name_for_model": "katachat",
   "description_for_human": "Plugin for playing Go aka Baduk on a 9x9 board.",
-  "description_for_model": "Plugin for playing Go aka Baduk on a 9x9 board. You can start a new game, ask for the best move, make a move, get the move sequence, print a position diagram, get the current score, or undo the last move.",
+  "description_for_model": "Plugin for playing Go aka Baduk on a 9x9 board. Coordinates go from A1 to I9. You can start a new game, ask for the best move, make a move, get the move sequence, print a position diagram, get the current score, or undo the last move.",
   "auth": {
     "type": "none"
   },

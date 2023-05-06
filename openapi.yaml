@@ -1,11 +1,11 @@
 openapi: 3.0.1
 info:
-  title: TODO Plugin
+  title: KataChat Plugin
   description: 
     A plugin that helps you to play Go aka Baduk on a 9x9 board against the user. 
-    You can start a new game, ask for the best move, make a move, get the move sequence, 
-    get a position diagram, get the current score, or undo the last move. 
-    The plugin uses the KataGo engine to make the moves. 
+    You can start a new game, ask for the best moves, make a move, get the move sequence, 
+    print the board, get the current score, or undo the last move. 
+    The plugin uses the KataGo engine to find good moves and score. 
   version: 'v1'
 servers:
   - url: http://localhost:5003
@@ -14,7 +14,6 @@ paths:
     get:
       operationId: start_game
       summary: Start a new game. Resets the game record and returns a game id.
-      parameters:
       responses:
         '200':
           description: OK
@@ -22,10 +21,121 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/start_game_resp'
-  /katachat/get_best_move/{game_id}:
+
+  /katachat/make_move/{game_id}/{move}:
     get:
-      operationId: get_best_move
-      summary: Get the best next move in the current position for the game identified by game_id.
+      operationId: make_move
+      summary: Tell KataGo which move was made in the current position for the game identified by game_id.
+      parameters:
+      - in: path
+        name: game_id
+        schema:
+            type: string
+        required: true
+        description: The id of the game to make a move for.
+      - in: path
+        name: move
+        schema:
+            type: string
+        required: true
+        description: Color and coordinate of the move, like BE4 or WE6.
+
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/make_move_resp'
+        '5XX':
+          description: Katachat error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/katachat_error'
+
+  /katachat/undo_last_move/{game_id}:
+    get:
+      operationId: undo_last_move
+      summary: Undo the last move in the current game for the game identified by game_id.
+      parameters:
+      - in: path
+        name: game_id
+        schema:
+            type: string
+        required: true
+        description: The id of the game to undo the last move for.
+
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/undo_last_move_resp'
+        '5XX':
+          description: Katachat error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/katachat_error'
+
+  /katachat/get_all_moves/{game_id}:
+    get:
+      operationId: get_all_moves
+      summary: Get all moves in the current game for the game identified by game_id.
+      parameters:
+      - in: path
+        name: game_id
+        schema:
+            type: string
+        required: true
+        description: The id of the game to get all moves for.
+
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/get_all_moves_resp'
+        '5XX':
+          description: Katachat error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/katachat_error'
+
+  /katachat/get_score/{game_id}:
+    get:
+      operationId: get_score
+      summary: Get the current score and winning probability from Black's perspective.
+      parameters:
+      - in: path
+        name: game_id
+        schema:
+            type: string
+        required: true
+        description: The id of the game to get the score for.
+
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/get_score_resp'
+        '5XX':
+          description: Katachat error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/katachat_error'
+
+  /katachat/get_best_moves/{game_id}:
+    get:
+      operationId: get_best_moves
+      summary: Get best next move candidates in the current position for the game identified by game_id.
       parameters:
       - in: path
         name: game_id
@@ -33,13 +143,39 @@ paths:
             type: string
         required: true
         description: The id of the game to get the best move for.
+
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/get_best_move_resp'
+                $ref: '#/components/schemas/get_best_moves_resp'
+        '5XX':
+          description: Katachat error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/katachat_error'
+
+  /katachat/print_board/{game_id}:
+    get:
+      operationId: print_board
+      summary: Return a string representation of the current board position for the game identified by game_id.
+      parameters:
+      - in: path
+        name: game_id
+        schema:
+            type: string
+        required: true
+        description: The id of the game to print the board for.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/print_board_resp'
         '5XX':
           description: Katachat error.
           content:
@@ -55,12 +191,68 @@ components:
         game_id:
           type: string
           description: The unique game identifier.
-    get_best_move_resp:
+
+    make_move_resp:
       type: object
       properties:
-        best_move:
+        all_moves:
+          type: array
+          items:
+            type: string
+          description: The list of all moves in the game, like ['BE4', 'WE6', 'BF5']
+
+    undo_last_move_resp:
+      type: object
+      properties:
+        all_moves:
+          type: array
+          items:
+            type: string
+          description: The list of all moves in the game, like ['BE4', 'WE6', 'BF5']
+
+    get_all_moves_resp:
+      type: object
+      properties:
+        all_moves:
+          type: array
+          items:
+            type: string
+          description: The list of all moves in the game, like ['BE4', 'WE6', 'BF5']
+
+    get_best_moves_resp:
+      type: object
+      properties:
+        best_moves:
+          type: array
+          items:
+            type: object
+            properties:
+              move:
+                type: string
+                description: The move, like BE4 or WE6.
+              psv:
+                type: number
+                description: A quality measure for the move. Bigger is better.
+            description: A move and its psv quality measure.
+          description: The best next moves in the current position, in descending order by quality.
+
+    get_score_resp:
+      type: object
+      properties:
+        black_score:
+          type: number
+          description: The current score from Black's perspective.
+        black_winprob:
+          type: number
+          description: The current winning probability from Black's perspective.
+
+    print_board_resp:
+      type: object
+      properties:
+        diagram:
           type: string
-          description: The best move in the current position.
+          description: String representation of the current board position.
+
     katachat_error:
       type: object
       properties:
@@ -69,29 +261,3 @@ components:
           description: Description of the error.
 
 
-    getTodosResponse:
-      type: object
-      properties:
-        todos:
-          type: array
-          items:
-            type: string
-          description: The list of todos.
-    addTodoRequest:
-      type: object
-      required:
-      - todo
-      properties:
-        todo:
-          type: string
-          description: The todo to add to the list.
-          required: true
-    deleteTodoRequest:
-      type: object
-      required:
-      - todo_idx
-      properties:
-        todo_idx:
-          type: integer
-          description: The index of the todo to delete.
-          required: true
